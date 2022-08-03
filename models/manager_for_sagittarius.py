@@ -424,8 +424,8 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
                 squared error or bce for binary cross entropy
         """
         super().__init__(input_dim, num_classes, class_sizes, cvae_catdims, cvae_hiddendims, cvae_ld,
-                         attn_heads, num_ref_points, transformer_dim, temporal_dim, tr_catdims,
-                         minT, maxT, device, batch_size=batch_size, beta=beta,  
+                         attn_heads, num_ref_points, temporal_dim, tr_catdims,
+                         minT, maxT, device, transformer_dim, batch_size=batch_size, beta=beta,  
                          train_transfer=train_transfer, num_cont=num_cont,
                          other_temporal_dims=other_temporal_dims, other_minT=other_minT,
                          other_maxT=other_maxT, rec_loss=rec_loss)
@@ -457,9 +457,12 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
         if self.train_transfer:
             assert transfer_dl is not None
 
-        mdir = '/'.join(mfile.split('/')[:-1]) + '/'
-        if not os.path.exists(mdir):
-            os.makedirs(mdir)
+        if '/' in mfile:
+            mdir = '/'.join(mfile.split('/')[:-1]) + '/'
+            if not os.path.exists(mdir):
+                os.makedirs(mdir)
+        else:
+            mdir = ''
 
         if reload:
             self.model.load_state_dict(torch.load(mfile, map_location=self.device))
@@ -492,8 +495,7 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
                          torch.stack([ce for _ in range(T)], dim=1).long()],
                         mask.float(), other_ts=[time.float()])
                     loss_transformer = self.model.loss_fn(
-                        expr.float(), [dr.long(), ce.long()], xhat, mu, logvar, adv_cvae, adv_tr,
-                        beta=self.beta)
+                        expr.float(), xhat, mu, logvar, beta=self.beta)
                     for k in loss_transformer:
                         if k not in ep_losses:
                             ep_losses[k] = []
@@ -521,8 +523,7 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
                              torch.stack([tce for _ in range(T)], dim=1).long()],
                             smask.float(), old_other_ts=[stime.float()], new_other_ts=[ttime.float()])
                         loss = self.model.loss_fn(
-                            texpr.float(), [sdr.long(), sce.long()], xgen, mu, logvar, adv_cvae, adv_tr,
-                            beta=self.beta)
+                            texpr.float(), xgen, mu, logvar, beta=self.beta)
                         for k in loss:
                             tr_k = 'transfer_{}'.format(k)
                             if tr_k not in ep_losses:
@@ -544,7 +545,7 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
                          torch.stack([ce for _ in range(T)], dim=1).long()],
                         mask.float(), other_ts=[time.float()])
                     loss_transformer = self.model.loss_fn(
-                        expr.float(), [dr.long(), ce.long()], xhat, mu, logvar)
+                        expr.float(), xhat, mu, logvar)
                     for k in loss_transformer:
                         if k not in ep_val_losses:
                             ep_val_losses[k] = []
@@ -612,16 +613,19 @@ class Sagittarius_Manager_DataLoader(Sagittarius_Manager):
             tdr = tdr[:, 0]
             tce = tce[:, 0]
             N, T, M = sexpr.shape
-            xhat = self.model.generate(
-                sexpr.float(), sdsg.float(), tdsg.float(),
-                [torch.stack([sdr for _ in range(T)], dim=1).long(),
-                 torch.stack([sce for _ in range(T)], dim=1).long()],
-                [torch.stack([tdr for _ in range(T)], dim=1).long(),
-                 torch.stack([tce for _ in range(T)], dim=1).long()],
-                smask.float(), old_other_ts=[stime.float()], new_other_ts=[ttime.float()])
-            
-            gen_expr.append(xhat)
-            gen_mask.append(tmask)
+            for bstart in range(0, len(sexpr), self.batch_size):
+                bend = min(N, bstart + self.batch_size)
+                xhat, _, _ = self.model.generate(
+                    sexpr[bstart:bend].float(), sdsg[bstart:bend].float(), tdsg[bstart:bend].float(),
+                    [torch.stack([sdr[bstart:bend] for _ in range(T)], dim=1).long(),
+                     torch.stack([sce[bstart:bend] for _ in range(T)], dim=1).long()],
+                    [torch.stack([tdr[bstart:bend] for _ in range(T)], dim=1).long(),
+                     torch.stack([tce[bstart:bend] for _ in range(T)], dim=1).long()],
+                    smask[bstart:bend].float(), old_other_ts=[stime[bstart:bend].float()], 
+                    new_other_ts=[ttime[bstart:bend].float()])
+
+                gen_expr.append(xhat)
+                gen_mask.append(tmask[bstart:bend])
         gen_expr = torch.cat(gen_expr, dim=0)
         gen_mask = torch.cat(gen_mask, dim=0)
         return torch.masked_select(gen_expr, gen_mask.view(-1, T, 1).bool()).view(-1, M)
