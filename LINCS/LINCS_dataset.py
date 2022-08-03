@@ -453,7 +453,7 @@ class Lincs2dDataLoader():
         g = torch.Generator()
         g.manual_seed(0)
 
-        return DataLoader(ds, batch_size=self.batch_size, shuffle=False, num_workers=0,
+        return DataLoader(ds, batch_size=int(self.batch_size / 2), shuffle=False, num_workers=0,
                           worker_init_fn=seed_worker, generator=g)
 
     def get_transfer_data_loader(self, N_drug, N_cell, N_random):
@@ -517,7 +517,7 @@ class Lincs2dDataLoader():
         g = torch.Generator()
         g.manual_seed(0)
 
-        return DataLoader(gen_ds, batch_size=self.batch_size, shuffle=False, num_workers=0,
+        return DataLoader(gen_ds, batch_size=10, shuffle=False, num_workers=0,
                           worker_init_fn=seed_worker, generator=g)
 
 
@@ -632,6 +632,6 @@ class Lincs2dDataLoaderWithUnseenForCvae(Lincs2dDataLoaderWithUnseen):
         g = torch.Generator()
         g.manual_seed(0)
 
-        return DataLoader(gen_ds, batch_size=self.batch_size, shuffle=False, num_workers=0,
+        return DataLoader(gen_ds, batch_size=10, shuffle=False, num_workers=0,
                           worker_init_fn=seed_worker, generator=g)
 
