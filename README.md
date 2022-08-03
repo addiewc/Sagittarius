@@ -6,6 +6,14 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 
 ### Repository structure
 
-figures/ -- jupyter notebooks to recreate the figures in the paper.
-models/ -- Sagittarius model file and wrapper to facilitate easy interaction.
-EvoDevo/ -- experimental code for the Evo-Devo dataset, including `simulate_new_EvoDevo_measurements.ipynb` notebook to simulate a new EvoDevo dataset at unmeasured time points for all species and organ combinations.
+```
+| Sagittarius/
+|
+| --- `figures/`: jupyter notebooks to recreate the figures in the paper.
+|
+| --- `models/`: Sagittarius model file and wrapper to facilitate easy interaction.
+|
+| --- `EvoDevo/`: experimental code for the Evo-Devo dataset, including 
+| --------- `simulate_new_EvoDevo_measurements.ipynb`: notebook to simulate a new EvoDevo dataset at unmeasured
+|                                                      time points for all species and organ combinations.
+```
