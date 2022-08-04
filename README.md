@@ -20,6 +20,10 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 | --- LINCS/: experimental code for the LINCS dataset, including:
 |       | --- simulate_new_LINCS_measurements.ipynb: notebook to simulate a new LINCS dataset at unmeasured dose
 |                                                    and time for all combinations of compounds and cell lines.
+|
+| --- TCGA/: experimental code for the TCGA dataset, including:
+|       | --- simulate_new_TCGA_measurements.ipynb: notebook to simulate new TCGA mutation dataset at unobserved
+|                                                   survival times for all cancer types.
 ```
 
 
@@ -34,3 +38,5 @@ Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch=
 3. To simulate a new dataset from the fully-trained EvoDevo model, open the `EvoDevo/simulate_new_EvoDevo_measurements.ipynb` and run, replacing the time points to simulate as desired. A dataset made up of the default time points can also be found at: https://figshare.com/projects/Sagittarius/144771.
 4. To run the LINCS extrapolation tasks, run `python LINCS/Sagittarius_LINCS_<taskname>_experiment.py`. To view all possible commandline arguments, add the `--help` flag. To set gpu, use `--gpu <gpu number>`. To load the paper's pretrained model, use `--reload --model-file LINCS/trained_models/Sagittarius_<taskname>_model.pth`. To mimic the paper's results, use `--config LINCS/model_config_files/Sagittarius_config.json`.
 5. To simulate a new dataset from the fully-trained LINCS model, open the `LINCS/simulate_new_LINCS_measurements.ipynb` and run, replacing the dose and time points to simulate as desired.
+6. To run the TCGA patient-by-patient extrapolation task, run `python TCGA/Sagittarius_patient_by_patient_extrapolation.py`. To view all possible commandline arguments, add the `--help` flag. To set gpu, use `--gpu <gpu number>`. Set the cancer type of interest with `--cancer-type <SARC, THCA, etc>`. Determine the number of intersecting cancer types non-stationary genes with `--non-stationary-k <k>`. To reproduce the results from the paper, use `--non-stationary-k 4` with `--cancer-type SARC`, and `--non-stationary-k 2` with `--cancer-type THCA`.
+7. To simulate a new dataset with early-stage cancer patients, open the `TCGA/simulate_new_TCGA_measurements.ipynb` and run, replacing the survival time points to simulate as desired. A dataset made up of the default survival time points to simulate can also be found at: https://figshare.com/projects/Sagittarius/144771.
