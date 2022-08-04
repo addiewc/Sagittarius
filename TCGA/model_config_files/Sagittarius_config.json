@@ -1,0 +1,11 @@
+{
+  "cvae_catdims": [8],
+  "cvae_hiddendims": [256, 256],
+  "cvae_ld": 16,
+  "attn_heads": 8,
+  "num_ref_points": 4,
+  "transformer_dim": 16,
+  "temporal_dim": 2,
+  "tr_catdims": [4],
+  "beta": 1
+}

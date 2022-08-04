@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import spearmanr
 import scipy
 import sklearn.metrics
+from sklearn.metrics import roc_auc_score
 import pandas as pd
 
 
@@ -139,6 +140,28 @@ def get_ranked_spearman_corr_over_time(pred, gt, mask, get_per_sequence=False):
     if get_per_sequence:
         return tot_spearmans
     return np.nanmean(tot_spearmans)
+
+
+def compute_auroc(pred, gt, get_per_patient=True):
+    """
+    Compute AUROC for mutation data.
+    
+    Parameters:
+        pred (Tensor): K x M simulated mutation profiles
+        gt (Tensor): K x M measured mutation profiles
+        get_per_patient (bool): True iff we should return the auroc for each patient; otherwise,
+            return summary over all patients.
+    """
+    assert pred.shape == gt.shape
+    aurocs = []
+    for i in range(len(pred)):  # go through each patient
+        if len(np.unique(gt[i].detach().cpu().numpy())) == 1:  # only one unique class!
+            aurocs.append(np.nan)
+            continue
+        aurocs.append(roc_auc_score(gt[i].detach().cpu().numpy(), pred[i].detach().cpu().numpy()))
+    if get_per_patient:
+        return np.asarray(aurocs)
+    return np.nanmean(aurocs)
 
 
 def construct_sequence_level_results_df(logging_file, sequences, results):
