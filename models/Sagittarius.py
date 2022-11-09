@@ -92,9 +92,9 @@ class Sagittarius(nn.Module):
             class_sizes=cvae_yemb_dims, hidden_dims=cvae_hidden_dims,
             device=self.device).to(self.device)
         self.cvae_adv = Adversary(  # kept for legacy random seed consistency
-            self.ld, self.K, self.class_sizes, [16], self.device).to(self.device)
+            self.ld, self.K, self.class_sizes, [16] if rec_loss == 'mse' else [8], self.device).to(self.device)
         self.latent_adv = Adversary(  # kept for legacy random seed consistency
-            self.tr_dim, self.K, self.class_sizes, [16],
+            self.tr_dim, self.K, self.class_sizes, [16] if rec_loss == 'mse' else [8],
             self.device).to(self.device)
         self.transformer_enc = SagittariusTransformerEncoder(
             num_classes, class_sizes, latent_dim, tr_dim, temporal_dim, cat_dims,
@@ -473,7 +473,7 @@ class SagittariusLayers(nn.Module):
         self.minT = minT
         self.maxT = maxT
         self.device = device
-
+        
         self.class_embedders = nn.ModuleList([
             nn.Embedding(class_sizes[k] + 1, cat_dims[k]).to(self.device) 
             for k in range(self.K)])
