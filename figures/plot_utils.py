@@ -124,7 +124,7 @@ def bar_plot(ax, data, data_labels, xlabel, ylabel, xscale='linear', yscale='lin
     ax.set_xscale(xscale)
     ax.set_yscale(yscale)
     ax.set_xticks(range(len(data_labels)))
-    ax.set_xticklabels(data_labels, rotate=rotangle, ha=anchor)
+    ax.set_xticklabels(data_labels, rotation=rotangle, ha=anchor)
 
 
 def horizontal_bar_plot(ax, data, data_labels, xlabel, ylabel, xscale='linear', yscale='linear',

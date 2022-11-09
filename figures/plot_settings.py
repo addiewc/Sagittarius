@@ -53,13 +53,12 @@ def get_model_ordering(actual_models):
     return sorted(actual_models, key=lambda m: desired_ordering.index(m))
 
 
-def get_metric_name(name, setting):
+def get_metric_name(name):
     return {
         'RMSE': 'RMSE',
-        'spearman_rank_by_genes': 'Spearman correlation' if setting != 'EvoDevo' \
-                else 'Spearman (rank genes)',
-        'spearman_rank_by_times': 'T-Spearman correlation' if setting != 'EvoDevo' \
-                else 'Spearman (rank time points)',
+        'spearman_rank_by_genes': 'Spearman correlation',
+        'pearson_compare_genes': 'Pearson (compare genes)',
+        'pearson_compare_times': 'Pearson (compare time points)',
         'auroc': 'AUROC',
     }[name]
 
@@ -130,6 +129,7 @@ def get_organ_color_palette():
 def get_TM_color_palette():
     return {
         'Sagittarius': '#80cdc1',
+        'edge': '#003c30',
         'baseline': '#018571',
         'Heart': '#f5f5f5',
         'Kidney': '#dfc27d',
