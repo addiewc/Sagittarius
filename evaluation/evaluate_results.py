@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, pearsonr
 import scipy
 import sklearn.metrics
 from sklearn.metrics import roc_auc_score
@@ -28,8 +28,6 @@ def run_base_evaluation_rmse_spearmans(pred, gt, mask, get_per_sequence=True):
     """
     rmse = compute_rmse(pred, gt, get_per_sequence=get_per_sequence)
     sp_rank_by_genes = get_ranked_spearman_corr(pred, gt, get_per_sequence=get_per_sequence)
-    if not get_per_sequence:
-        print('rho (sp): {}; rho (pe): {}'.format(corr, corr_pear))
     if get_per_sequence:  # refactor rmse, rhos to have len(sequence)
         rmse_new = []
         corr_new = []
@@ -44,6 +42,43 @@ def run_base_evaluation_rmse_spearmans(pred, gt, mask, get_per_sequence=True):
     sp_rank_by_time = get_ranked_spearman_corr_over_time(
         pred, gt, mask, get_per_sequence=get_per_sequence)
     return rmse, sp_rank_by_genes, sp_rank_by_time
+
+
+def run_base_evaluation_rmse_pearsons(pred, gt, mask, get_per_sequence=True):
+    """
+    Compute basic evaluation metrics for EvoDevo and related tasks.
+    
+    Parameters:
+        pred (Tensor): K x M tensor of simulated expression.
+        gt (Tensor): K x M tensor of measured expression.
+        mask (Tensor): N x T tensor indicating whether an expression was measured for each of N
+            sequences; torch.count_nonzero(`mask`) = K
+        get_per_sequence (bool): True if a metric value should be reported for every sequence N;
+            otherwise, report summary statistic across dataset
+    
+    Returns:
+        rmse: root mean squared error; list of length N if get_per_sequence, otherwise float
+        pe_compare_by_genes: Pearson correlation (compare genes); list of length N if get_per_sequence,
+            otherwise float
+        pe_compare_by_time: Pearson correlation (compare time); list of length N if get_per_sequence,
+            otherwise float
+    """
+    rmse = compute_rmse(pred, gt, get_per_sequence=get_per_sequence)
+    pe_compare_by_genes = get_ranked_pearson_corr(pred, gt, get_per_sequence=get_per_sequence)
+    if get_per_sequence:  # refactor rmse, rhos to have len(sequence)
+        rmse_new = []
+        corr_new = []
+        for i in range(len(mask)):
+            T_start, T_end = torch.count_nonzero(
+                mask[:i]).item(), torch.count_nonzero(mask[:i + 1]).item()
+            rmse_new.append(np.nanmean(rmse[T_start:T_end]))
+            corr_new.append(np.nanmean(pe_compare_by_genes[T_start:T_end]))
+        rmse = np.asarray(rmse_new)
+        pe_compare_by_genes = np.asarray(corr_new)
+
+    pe_compare_by_time = get_ranked_pearson_corr_over_time(
+        pred, gt, mask, get_per_sequence=get_per_sequence)
+    return rmse, pe_compare_by_genes, pe_compare_by_time
 
 
 def compute_rmse(pred, gt, get_per_sequence=False):
@@ -95,6 +130,57 @@ def get_ranked_spearman_corr(pred, gt, get_per_sequence=False):
     return np.nanmean(total_res)
 
 
+def compute_matrix_input_pearson(x, y):
+    R, N = x.shape  # take N correlations of rth value (so column correlations)
+    xv = x - x.mean(dim=0)
+    yv = y - y.mean(dim=0)
+    assert len(xv) == R
+    assert len(yv) == R
+    
+    xvss = torch.pow(xv.float(), 2).sum(dim=0)
+    yvss = torch.pow(yv.float(), 2).sum(dim=0)
+    
+    result = torch.matmul(xv.float().transpose(1, 0), yv.float()) / (
+        torch.sqrt(torch.outer(xvss.float() + 1e-6, yvss.float() + 1e-6)))  # add to prevent exact-0 -> nans
+    # round in case of precision
+    res = torch.clamp(result, min=-1.0, max=1.0)
+    return torch.diagonal(res.float())
+
+
+def get_ranked_pearson_corr(pred, gt, get_per_sequence=False):
+    """
+    Return Pearson correlation (ranked by genes).
+    
+    Parameters:
+        pred (Tensor): simulated expression
+        gt (Tensor): measured expression
+        get_per_sequence (bool): True iff we should return a correlation for each measurement;
+            otherwise, return summary statistic
+    """
+    assert pred.shape == gt.shape
+
+    if len(pred.shape) == 3:
+        pred = pred.view(-1, pred.shape[-1])
+        gt = gt.view(-1, gt.shape[-1])
+
+    total_res = []
+    for i in range(len(pred)):  # go through each snapshot (NT)
+        ex1 = pred[i]
+        ex2 = gt[i]
+        M = len(ex1)
+
+        ranked1 = sorted(range(M), key=lambda g: -ex1[g].item())
+        ranked1 = [ranked1.index(g) for g in range(M)]
+        ranked2 = sorted(range(M), key=lambda g: -ex2[g].item())
+        ranked2 = [ranked2.index(g) for g in range(M)]
+
+        corrt, pt = pearsonr(ranked1, ranked2)
+        total_res.append(corrt)
+    if get_per_sequence:
+        return total_res
+    return np.nanmean(total_res)
+
+
 def get_ranked_spearman_corr_over_time(pred, gt, mask, get_per_sequence=False):
     """
     Returns the Spearman correlation (ranked by time).
@@ -140,6 +226,46 @@ def get_ranked_spearman_corr_over_time(pred, gt, mask, get_per_sequence=False):
     if get_per_sequence:
         return tot_spearmans
     return np.nanmean(tot_spearmans)
+
+
+def get_ranked_pearson_corr_over_time(pred, gt, mask, get_per_sequence=False):
+    """
+    Returns the Pearson correlation (compare time).
+    
+    Parameters:
+        pred (Tensor): simulated expression
+        gt (Tensor): measured expression
+        mask (Tensor): mask indicating number of measurements per sequence
+        get_per_sequence (bool): True iff we should return a correlation for each sequence;
+            otherwise, return summary statistic
+    """
+    assert pred.shape == gt.shape
+    tot_pearsons = []
+    M = pred.shape[-1]
+    
+    if len(pred.shape) == 3:  # currently N x T x M -> refactor!
+        pred = pred.view(-1, pred.shape[-1])
+        gt = gt.view(-1, pred.shape[-1])
+
+    T_primes = torch.count_nonzero(mask, dim=1)
+    assert torch.sum(T_primes) == len(pred), \
+        "Incompatible {} and {}".format(torch.sum(T_primes), len(pred))
+    for i in range(len(mask)):  # for each subject
+        sp_output = pred[torch.sum(T_primes[:i]):torch.sum(T_primes[:i+1])]  # T' x M
+        sp_gt = gt[torch.sum(T_primes[:i]):torch.sum(T_primes[:i+1])]  # T' x M
+            
+        if len(sp_output) < 2:
+            if get_per_sequence:
+                tot_spearmans.append([])
+            continue  # can't proceed with this subject for t-rho
+
+        # faster to calculate pearson rhos in matrix form
+        pearson_rhos = compute_matrix_input_pearson(sp_output, sp_gt)
+        tot_pearsons.append(np.nanmean(pearson_rhos.detach().cpu().numpy()))
+    
+    if get_per_sequence:
+        return tot_pearsons
+    return np.nanmean(tot_pearsons)
 
 
 def compute_auroc(pred, gt, get_per_patient=True):

@@ -56,11 +56,6 @@ def load_config_file(config_file):
     with open(config_file, 'r') as f:
         return json.load(f)
 
-    
-def get_aging_only_version(matx):
-    return torch.stack([utils.restrict_to_aging_genes(vect, non_stationary_mask, device)
-                        for vect in matx])
-
 
 def time_transfer(mask_to_use, num_ex, ts_to_hide=3):
     # start by picking _num_ex_ sequences
@@ -199,9 +194,9 @@ unseen_expr = torch.masked_select(
     expr_vec, torch.stack([rev_mask.bool() for _ in range(M_new)], dim=-1)
 ).to(device).view(-1, M_new)  # measured expression
 h_extrap = sagittarius_manager.generate(rev_mask).view(-1, M_new)  # simulated expression
-h_extrap = get_aging_only_version(h_extrap).view(h_extrap.shape[0], -1)  # restrict to HAGR genes
-unseen_expr = get_aging_only_version(unseen_expr).view(h_extrap.shape[0], -1)
-gen_res = evaluate_results.run_base_evaluation_rmse_spearmans(
+h_extrap = h_extrap.view(h_extrap.shape[0], -1)
+unseen_expr = unseen_expr.view(h_extrap.shape[0], -1)
+gen_res = evaluate_results.run_base_evaluation_rmse_pearsons(
     h_extrap, unseen_expr, rev_mask, get_per_sequence=True)
 
 ordered_seqs = ['{}:{}'.format(species[spec_vec_long[i]], organs[org_vec_long[i]]) for i in range(N)]
@@ -210,10 +205,10 @@ if args.logging_file is not None:
     evaluation_results.construct_sequence_level_results_df(args.logging_file, ordered_seqs, gen_res) 
 else:
     print('Average rmse: {:.3f}'.format(np.mean(gen_res[0])))
-    print('Average Spearman (rank by genes): {:.3f}'.format(np.mean(gen_res[1])))
-    print('Average Spearman (rank by times): {:.3f}'.format(np.mean(gen_res[2])))
+    print('Average Pearson (compare genes): {:.3f}'.format(np.mean(gen_res[1])))
+    print('Average Pearson (compare times): {:.3f}'.format(np.mean(gen_res[2])))
     print('\n')
-    print('Sequence \t RMSE \t Spearman (rank by genes) \t Spearman (rank by time)')
+    print('Sequence \t RMSE \t Pearson (compare genes) \t Spearman (compare time)')
     print('----------------------------------------------------------------------------')
     for i in range(len(ordered_seqs)):
         print(ordered_seqs[i], '\t{:.3f}\t{:.3f}\t{:.3f}'.format(
