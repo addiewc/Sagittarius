@@ -22,10 +22,10 @@ parser.add_argument('--seed', type=int, default=0, help='Random seed for model s
 parser.add_argument('--reload', action='store_true', help='Reload existing model file')
 parser.add_argument('--verbose', action='store_true', help='Print more dataset details')
 parser.add_argument('--config-file', type=str,
-                    default='model_config_files/Sagittarius_config.json')
+                    default='EvoDevo/model_config_files/Sagittarius_config.json')
 parser.add_argument('--preload-gene-mask', type=str, default=None, 
                     help='Gene mask to pre-load to maintain consistency across architectures;'+\
-                    ' use `trained_models/Sagittarius_paper_genemask.txt` to use pretrained models.')
+                    ' use `EvoDevo/trained_models/Sagittarius_paper_genemask.txt` to use pretrained models.')
 parser.add_argument('--logging-file', type=str, default=None, 
                     help='Where to log results as dataframe, or None to log to std out')
 
