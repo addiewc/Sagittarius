@@ -31,7 +31,7 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 ## Installation Tutorial
 
 ### System Requirements
-Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch==1.9.1+cu11.1, numpy, pandas, sklearn, matplotlib, seaborn, statsmodels, and so on. For best performance, Sagittarius can be run on a GPU. However, all experiments can also be run on a CPU by not setting the `--gpu` flag.
+Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch==1.9.1+cu11.1, numpy==1.21.2, pandas==1.3.3, scikit-learn=0.24.2, matplotlib==3.4.3, seaborn==0.11.2, umap-learn=0.5.1, anndata=0.8.0, statsmodels==0.13.0, tqdm==4.62.3, and so on. For best performance, Sagittarius can be run on a GPU. However, all experiments can also be run on a CPU by not setting the `--gpu` flag.
 
 ## How to use our code
 To begin, update the settings in `config.py` to reflect your environment. The EvoDevo dataset files are also included in the repository, so EvoDevo experiments can be run as a self-contained example of the model (see 2, 3).
