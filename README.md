@@ -16,6 +16,7 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 | --- EvoDevo/: experimental code for the Evo-Devo dataset, including:
 |       | --- simulate_new_EvoDevo_measurements.ipynb: notebook to simulate a new EvoDevo dataset at unmeasured
 |                                                      time points for all species and organ combinations.
+|       | --- dataset/: files for the EvoDevo dataset.
 |
 | --- LINCS/: experimental code for the LINCS dataset, including:
 |       | --- simulate_new_LINCS_measurements.ipynb: notebook to simulate a new LINCS dataset at unmeasured dose
@@ -33,7 +34,7 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch==1.9.1+cu11.1, numpy, pandas, sklearn, matplotlib, seaborn, statsmodels, and so on. For best performance, Sagittarius can be run on a GPU. However, all experiments can also be run on a CPU by not setting the `--gpu` flag.
 
 ## How to use our code
-To begin, update the settings in `config.py` to reflect your environment.
+To begin, update the settings in `config.py` to reflect your environment. The EvoDevo dataset files are also included in the repository, so EvoDevo experiments can be run as a self-contained example of the model (see 2, 3).
 
 1. To reproduce figures from the paper, open the respective `figures/reproduce_figure_X.ipynb` or `figures/reproduce_supplementary_figure_Y.ipynb` notebook and run.
 2. To run the EvoDevo extrapolation task, run `python EvoDevo/Sagittarius_EvoDevo_extrapolation_experiment.py`. This will output (to std out by default) the sequence-level extrapolation performance summary for all time series in the EvoDevo dataset. To view all possible commandline arguments, add the `--help` flag. To set gpu, use `--gpu <gpu number>`. To load the paper's pretrained model, use `--reload --model-file EvoDevo/trained_models/Sagittarius_extrapolation_model.pth --preload-gene-mask EvoDevo/trained_models/Sagittarius_paper_genemask.txt`. To mimic the paper's results, use `--config EvoDevo/model_config_files/Sagittarius_config.json`. Running inference-only (with the --reload flag) on a standard laptop requires approximately 1 minute; training & inference requires approximately 1 hour. 
