@@ -49,7 +49,7 @@ class EvoDevoDataset(torch.utils.data.Dataset):
     """
     def __init__(self, train: bool = True, device=torch.device('cuda:0'), train_ordering=None):
         super().__init__()
-        print('...loading data')
+        #print('...loading data')
         self.attr, self.expr = load_data()
         self.species = sorted(np.unique(self.attr['species']))
         self.organs = sorted(np.unique(self.attr['organ']))

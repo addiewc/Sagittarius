@@ -16,7 +16,6 @@ import sklearn.metrics
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(sys.path[0], '../'))
-from config import HAGR_AGING_GENES_LOC
 from EvoDevo import EvoDevo_dataset
 
 
@@ -97,7 +96,7 @@ def limit_data_to_species_organ_combo(specOI, orgOI, device):
     specOptions = set(np.where(full_spec == specIdx)[0])
     orgOptions = set(np.where(full_org == orgIdx)[0])
     finalOptions = sorted(list(specOptions.intersection(orgOptions)))
-    return specIdx, orgIdx, full_expr[finalOptions], \
+    return full_spec[finalOptions], full_org[finalOptions], full_expr[finalOptions], \
            full_ts[finalOptions], full_mask[finalOptions]
 
 
@@ -212,26 +211,6 @@ def restrict_to_nonstationary_genes(expr_vec):
         expr_vec = torch.masked_select(expr_vec, torch.stack(
             [non_stationary_mask for _ in range(T)], dim=0).view(1, T, M).bool()).view(N, T, -1)
         return expr_vec, non_stationary_mask
-
-
-def restrict_to_aging_genes(seq, non_stationary_mask, device):
-    """
-    Restrict sequence to aging-related genes.
-    
-    Parameters:
-        seq (Tensor): K x M' tensor to restrict to aging-related genes.
-        non_stationary_mask (Tensor): M tensor, where `non_stationary_mask[m]` = 1 indicates that `m`
-            is included in seq; torch.count_nonzero(`non_stationary_mask`) = M'
-        device (str): device to use
-    """
-    M = len(non_stationary_mask)
-    agingdf = pd.read_csv(HAGR_AGING_GENES_LOC, names=['Idx', 'Gene'])
-    indices = sorted(agingdf['Idx'].values)
-    aging_mask = torch.zeros(M)
-    aging_mask[indices] = 1
-
-    relevant_aging_mask = torch.masked_select(aging_mask, non_stationary_mask.bool())
-    return torch.masked_select(seq, relevant_aging_mask.to(device).bool()).view(-1)
 
 
 def get_num_aging_genes(non_stationary_mask):
