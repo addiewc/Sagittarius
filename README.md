@@ -1,7 +1,7 @@
 # Sagittarius
 Gene expression time-series extrapolation for heterogeneous data
 
-## Introductoin
+## Introduction
 Sagittarius is a model for temporal gene expression extrapolation simulate unmeasured gene expression data from unaligned, heterogeneous time series data. This is a python repository to simulate transcriptomic profiles at time points outside of the range of time points available in the measured data.
 
 ## Repository structure
@@ -16,6 +16,7 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 | --- EvoDevo/: experimental code for the Evo-Devo dataset, including:
 |       | --- simulate_new_EvoDevo_measurements.ipynb: notebook to simulate a new EvoDevo dataset at unmeasured
 |                                                      time points for all species and organ combinations.
+|       | --- dataset/: files for the EvoDevo dataset.
 |
 | --- LINCS/: experimental code for the LINCS dataset, including:
 |       | --- simulate_new_LINCS_measurements.ipynb: notebook to simulate a new LINCS dataset at unmeasured dose
@@ -30,10 +31,11 @@ Sagittarius is a model for temporal gene expression extrapolation simulate unmea
 ## Installation Tutorial
 
 ### System Requirements
-Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch==1.9.1+cu11.1, numpy, pandas, sklearn, matplotlib, seaborn, lifelines, statsmodels, and so on. For best performance, Sagittarius can be run on a GPU. However, all experiments can also be run on a CPU by not setting the `--gpu` flag. Please do not hesitate to open an issue for any installation problems or other concerns.
+
+Sagittarius is implemented using Python 3.9 on LINUX. Sagittairus expects torch==1.9.1+cu11.1, numpy==1.21.2, pandas==1.3.3, scikit-learn=0.24.2, matplotlib==3.4.3, seaborn==0.11.2, umap-learn=0.5.1, anndata=0.8.0, statsmodels==0.13.0, tqdm==4.62.3, lifelines==0.26.5, and so on. For best performance, Sagittarius can be run on a GPU. However, all experiments can also be run on a CPU by not setting the `--gpu` flag. Typical installation requires approximately 5 minutes. Please do not hesitate to open an issue for any installation problems or other concerns.
 
 ## How to use our code
-To begin, update the settings in `config.py` to reflect your environment.
+To begin, update the settings in `config.py` to reflect your environment. The EvoDevo dataset files are also included in the repository, so EvoDevo experiments can be run as a self-contained example of the model (see 2, 3).
 
 1. To reproduce figures from the paper, open the respective `figures/reproduce_figure_X.ipynb` or `figures/reproduce_supplementary_figure_Y.ipynb` notebook and run.
 2. To run the EvoDevo extrapolation to late timepoint task, run `source run_main_evoDevo_cpu.sh` to retrain Sagittarius on cpu. Alternatively, use `python EvoDevo/Sagittarius_EvoDevo_extrapolation_experiment.py`. This will output (to std out by default) the sequence-level extrapolation performance summary for all time series in the EvoDevo dataset. To view all possible commandline arguments, add the `--help` flag. To set gpu, use `--gpu <gpu number>`. To load the paper's pretrained model, use `--reload --model-file EvoDevo/trained_models/Sagittarius_extrapolation_model.pth --preload-gene-mask EvoDevo/trained_models/Sagittarius_paper_genemask.txt`. To mimic the paper's results, use `--config EvoDevo/model_config_files/Sagittarius_config.json`. Running inference-only (with the --reload flag) on a standard laptop requires approximately 1 minute; training & inference requires approximately 1 hour. 
