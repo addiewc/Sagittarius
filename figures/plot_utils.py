@@ -1,7 +1,6 @@
 import numpy as np
 import seaborn as sns
-# import umap
-# from sklearn.manifold import TSNE
+from lifelines import KaplanMeierFitter, CoxPHFitter
 from collections import defaultdict
 import pandas as pd
 
@@ -98,10 +97,10 @@ def bar_plot(ax, data, data_labels, xlabel, ylabel, xscale='linear', yscale='lin
              rotangle=0, anchor='center'):
     if invert_axes:
         ax.bar(x=range(len(data)), height=[min_val - d for d in data], bottom=data, color=color,
-               yerr=errs, edgecolor=color if edge_color is None else edge_color)
+               yerr=errs, edgecolor=color if edge_color is None else edge_color, ecolor='w')
         ax.invert_yaxis()
     else:
-        ax.bar(x=range(len(data)), height=data, bottom=min_val, color=color, yerr=errs)
+        ax.bar(x=range(len(data)), height=[d-min_val for d in data], bottom=min_val, color=color, yerr=errs, ecolor='w')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_xscale(xscale)
@@ -260,3 +259,30 @@ def violin_plot(ax, data, xlabel, ylabel, xticks=None, yticks=None, xscale='line
     if yticks is not None:
         ax.set_yticks(range(1, len(yticks)+1))
         ax.set_yticklabels(yticks)
+        
+
+def kaplan_meier_curve(ax, times, observations, labels, xlabel, ylabel, showCI=True,
+                       max_time=None, usePercentageX=False, usePercentageY=True, colors=None):
+    kmf1 = KaplanMeierFitter()  # instantiate the class to create an object
+
+    if type(colors) == str:
+        colors = [colors for _ in range(len(times))]  # all the same color
+    for cohort in range(len(times)):
+        dt = np.nan_to_num(times[cohort])
+        kmf1.fit(dt, np.nan_to_num(observations[cohort]))
+        kmf1.plot(ax=ax, label=labels[cohort], ci_show=showCI, color=colors[cohort] if colors is not None else None)
+
+    if usePercentageX:
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter(
+            xmax=1, decimals=None, symbol='%', is_latex=False))
+    if usePercentageY:
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(
+            xmax=1, decimals=None, symbol='%', is_latex=False))
+
+    if max_time is not None:
+        ax.set_xlim(ax.get_xlim()[0], max_time)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    handles, labels = ax.get_legend_handles_labels()
+    format_legend(plt, handles, labels, loc='lower left')

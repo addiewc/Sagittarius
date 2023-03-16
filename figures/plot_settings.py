@@ -26,7 +26,7 @@ plt.style.use('dark_background')
 
 
 EVO_DEVO_MODELS = ['Sagittarius', 'linear', 'mean', 'mTAN', 'cvae', 'cpa',
-                   'seq_by_seq_RNN', 'seq_by_seq_neuralODE']
+                   'seq_by_seq_RNN', 'seq_by_seq_neuralODE', 'prescient']
 
 
 def get_square_axis():
@@ -49,7 +49,8 @@ def get_double_square_axis():
 
 def get_model_ordering(actual_models):
     desired_ordering = ['Sagittarius', 'linear', 'mean',
-                        'mTAN', 'cvae', 'cpa', 'seq_by_seq_RNN', 'seq_by_seq_neuralODE']
+                        'mTAN', 'cvae', 'cpa', 'seq_by_seq_RNN', 'seq_by_seq_neuralODE', 'prescient',
+                        'Sagittarius_ablation_noCensored', 'Sagittarius_ablation_allCensored']
     return sorted(actual_models, key=lambda m: desired_ordering.index(m))
 
 
@@ -69,9 +70,12 @@ def get_model_colors(mod):
         'cpa': '#8c510a',
         'seq_by_seq_RNN': '#bf812d',
         'seq_by_seq_neuralODE': '#dfc27d',
+        'prescient': '#f6e8c3',
         'mTAN': '#003c30',
         'mean': '#01665e',
         'linear': '#35978f',
+        'Sagittarius_ablation_noCensored': '#c7eae5',
+        'Sagittarius_ablation_allCensored': '#c7eae5',
         'Sagittarius': '#c7eae5'
     }[mod]
 
@@ -92,12 +96,18 @@ def get_model_name_conventions(mname):
         return 'RNN'
     if 'seq_by_seq_neuralODE' in mname:
         return 'Neural ODE'
+    if 'prescient' in mname:
+        return 'PRESCIENT'
     if 'mTAN' in mname:
         return 'mTAN'
     if 'linear' in mname:
         return 'Linear'
     if 'mean' in mname:
         return 'Mean'
+    if 'Sagittarius_ablation_noCensored' in mname:
+        return 'Sagittarius (observed only)'
+    if 'Sagittarius_ablation_allCensored' in mname:
+        return 'Sagittarius (all patients)'
     if 'Sagittarius' in mname:
         return 'Sagittarius'
     
@@ -147,4 +157,12 @@ def get_line_style(mod):
         return (0, (5, 1))
     elif mod == 'linear':
         return 'dotted'
+    elif mod == 'seq_by_seq_neuralODE':
+        return 'dotted'
+    elif mod == 'seq_by_seq_RNN':
+        return (0, (5, 1))
+    elif mod == 'Sagittarius_ablation_noCensored':
+        return 'dotted'
+    elif mod == 'Sagittarius_ablation_allCensored':
+        return (0, (5, 1))
     raise ValueError("Unknown model: {}".format(mod))
