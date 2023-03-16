@@ -75,19 +75,6 @@ def show_x_equals_y(ax, domain=(0, 1), color='tab:orange', set_max=1.0):
     ax.plot(line, line, c=color, linestyle='dashed')
 
 
-# def tsne_projection(ax, data, legend_nums, embedding=None, alpha=0.1, color_palette='icefire', hide_legend=False):
-#     if embedding is None:  # otherwise, use the given embedding
-#         embedding = TSNE(random_state=42).fit_transform(data)
-#     color_idxs = {}
-#     for c_idx, l in enumerate(set(legend_nums)):
-#         color_idxs[l] = c_idx
-#     sns.scatterplot(x=embedding[:, 0], y=embedding[:, 1], ax=ax, hue=legend_nums, alpha=alpha, palette=color_palette,
-#                     legend=not hide_legend)
-#     ax.set_xlabel('TSNE 1')
-#     ax.set_ylabel('TSNE 2')
-#     return embedding
-
-
 def line_plot(ax, ydata, xlabel, ylabel, xdata=None, xscale='linear', yscale='linear',
               max_time=None, invert_axes=False, color='tab:blue', linestyle='solid', label_marker=None, linewidth=1):
     if xdata is None:
@@ -100,10 +87,6 @@ def line_plot(ax, ydata, xlabel, ylabel, xdata=None, xscale='linear', yscale='li
     if invert_axes:
         ax.invert_xaxis()
         ax.invert_yaxis()
-        
-        
-# def vertical_line(ax, xval, linestyle='solid', linewidth=1, color='tab:blue'):
-#     ax.axvline(x=xval, linestyle=linestyle, linewidth=linewidth, c=color)
     
 
 def horizontal_line(ax, yval, linestyle='solid', linewidth=1, color='tab:blue'):
