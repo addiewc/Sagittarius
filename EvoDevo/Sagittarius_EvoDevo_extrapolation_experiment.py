@@ -48,7 +48,7 @@ expr_vec, spec_vec_long, org_vec_long, ts_vec, mask_vec = utils.shuffle_data(
 
 if args.preload_gene_mask is not None:
     non_stationary_mask = np.loadtxt(args.preload_gene_mask)
-    non_stationary_mask = torch.tensor(non_stationary_mask).to(device)
+    non_stationary_mask = torch.tensor(non_stationary_mask)
     expr_vec = torch.masked_select(expr_vec, non_stationary_mask.view(1, 1, -1).bool()).view(
         expr_vec.shape[0], expr_vec.shape[1], -1)
 else:
