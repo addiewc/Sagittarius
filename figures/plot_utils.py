@@ -168,6 +168,25 @@ def grouped_barplot(ax, nested_data, data_labels, xlabel, ylabel, xscale='linear
         handles, labels = ax.get_legend_handles_labels()
         format_legend(plt, handles, labels, loc=legend_loc)
         
+    
+def overlay_grouped_dot_plot(ax, nested_data, invert_axes=False, color='yellow', size=10, alpha=1.0):    
+    separation = 0.9 / len(nested_data[0])
+    pt_range = separation * 0.3
+    
+    x_individual = []
+    y_individual = []
+    colors = []
+    for grp_idx, grp in enumerate(nested_data):
+        for subidx, points in enumerate(grp):
+            full_idx = grp_idx + subidx * 0.9 / len(nested_data[0]) - 0.5
+            x_points = np.linspace(full_idx+separation/2. - pt_range/2., full_idx + separation/2.+ pt_range/2., len(points))
+            x_individual.extend(x_points)
+            y_individual.extend(points)
+
+    ax.scatter(x=x_individual, y=y_individual, color=color, s=size, zorder=100, alpha=alpha)
+    if invert_axes:
+        ax.invert_yaxis()
+        
         
 def show_image(ax, data, xlabel, ylabel, aspect=None, cmap='bwr', xticks=[], yticks=[]):
     c = ax.imshow(data, aspect=aspect, cmap=cmap)
